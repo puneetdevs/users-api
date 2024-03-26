@@ -26,7 +26,7 @@ class FetchUserData extends Command
                 );
             }
 
-            $csvFilePath = storage_path('app/users.csv');
+            $csvFilePath = storage_path('app/public/users.csv');
 
             if (file_exists($csvFilePath)) {
                 $csv = Writer::createFromPath($csvFilePath, 'a+');
