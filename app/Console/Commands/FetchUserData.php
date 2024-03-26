@@ -6,6 +6,7 @@ use App\Models\ApiUser;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use League\Csv\Writer;
+use Illuminate\Support\Facades\File;
 
 class FetchUserData extends Command
 {
@@ -21,19 +22,22 @@ class FetchUserData extends Command
         if ($response->successful()) {
             $users = $response->json();
             foreach ($users as $userData) {
-                ApiUser::create(
+                ApiUser::updateOrCreate(
+                    ['id' => $userData['id']],
                     $userData
                 );
             }
 
-            $csvFilePath = storage_path('app/public/users.csv');
-
-            if (file_exists($csvFilePath)) {
-                $csv = Writer::createFromPath($csvFilePath, 'a+');
-            } else {
-                $csv = Writer::createFromPath($csvFilePath, 'w+');
-                $csv->insertOne(array_keys(array_reverse($users[0]))); 
+            $date  = date('d_m_Y');
+            $directory = storage_path("app/public/$date");
+            if (!File::exists($directory)) {
+                File::makeDirectory($directory, 0777, true, true);
             }
+
+            $csvFilePath = storage_path("app/public/$date/users.csv");
+
+            $csv = Writer::createFromPath($csvFilePath, 'w+');
+            $csv->insertOne(array_keys(array_reverse($users[0]))); 
 
             foreach ($users as $userData) {
                 $csv->insertOne(array_reverse($userData));
